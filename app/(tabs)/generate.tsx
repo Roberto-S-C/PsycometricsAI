@@ -1,8 +1,11 @@
 import React from 'react'
+import { Text, View } from 'react-native'
 
-function generate() {
+const generate = () => {
   return (
-    <div>generate</div>
+    <View>
+      <Text>generate</Text>
+    </View>
   )
 }
 
