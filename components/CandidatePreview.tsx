@@ -15,10 +15,10 @@ type Props = {
 const Candidate = ({candidate}: Props) => {
   return (
     <View style={globalStyles.border}>
-        <Text style={{color: Colors.lightBlue}}>{candidate.name}</Text>
+        <Text style={styles.name}>{candidate.name}</Text>
         <View style={styles.info}>
-            <Text style={{color: Colors.darkGrey}}>Score: {candidate.score}</Text>
-            <Text style={{color: Colors.darkGrey}}>{candidate.testDate}</Text>     
+            <Text style={styles.infoText}>Score: {candidate.score}</Text>
+            <Text style={styles.infoText}>{candidate.testDate}</Text>
         </View> 
     </View>
   )
@@ -27,12 +27,21 @@ const Candidate = ({candidate}: Props) => {
 export default Candidate
 
 const styles = StyleSheet.create({
+    name: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: Colors.lightBlue,
+    },
     info: 
     {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
         paddingTop: 5,
+    },
+    infoText: {
+        fontSize: 16,
+        color: Colors.darkGrey
     }
 })
 
