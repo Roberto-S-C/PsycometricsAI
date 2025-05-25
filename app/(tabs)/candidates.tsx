@@ -1,6 +1,6 @@
 import FilterButton from '@/components/Buttons/FilterButton'
 import SortButton from '@/components/Buttons/SortButton'
-import Candidate from '@/components/CandidatePreview'
+import CandidatePreview from '@/components/Candidates/CandidatePreview'
 import SearchBar from '@/components/SearchBar'
 import { globalStyles } from '@/styles/globalStyles'
 import React from 'react'
@@ -22,7 +22,7 @@ const candidates = () => {
 
         <FlatList
           data={Candidates}
-          renderItem={({ item }) => <Candidate key={item.id} candidate={item} />}
+          renderItem={({ item }) => <CandidatePreview key={item.id} candidate={item} />}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />} // 12px vertical space
           contentContainerStyle={{ alignItems: 'center' }}
         />

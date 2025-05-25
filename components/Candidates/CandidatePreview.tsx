@@ -1,5 +1,6 @@
 import Colors from '@/constants/Colors'
 import { globalStyles } from '@/styles/globalStyles'
+import { Link } from 'expo-router'
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
@@ -12,19 +13,23 @@ type Props = {
     }
 }
 
-const Candidate = ({candidate}: Props) => {
-  return (
-    <View style={globalStyles.border}>
-        <Text style={styles.name}>{candidate.name}</Text>
-        <View style={styles.info}>
-            <Text style={styles.infoText}>Score: {candidate.score}</Text>
-            <Text style={styles.infoText}>{candidate.testDate}</Text>
-        </View> 
-    </View>
-  )
+
+const CandidatePreview = ({ candidate }: Props) => {
+
+    return (
+        <Link style={globalStyles.border} href={`/candidates/${candidate.id}`} >
+            <View>
+                <Text style={styles.name}>{candidate.name}</Text>
+                <View style={styles.info}>
+                    <Text style={styles.infoText}>Score: {candidate.score}</Text>
+                    <Text style={styles.infoText}>{candidate.testDate}</Text>
+                </View>
+            </View>
+        </Link>
+    )
 }
 
-export default Candidate
+export default CandidatePreview
 
 const styles = StyleSheet.create({
     name: {
@@ -32,7 +37,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: Colors.lightBlue,
     },
-    info: 
+    info:
     {
         flexDirection: 'row',
         justifyContent: 'space-between',
