@@ -21,8 +21,8 @@ export default Button
 const styles = StyleSheet.create({
     button: {
         flexDirection: 'row',
-        width: '75%',
         padding: 8,
+        width: '100%',
         borderWidth: 1,
         borderColor: Colors.lightGrey,
         borderRadius: 10,

@@ -22,7 +22,7 @@ export default SendButton;
 const styles = StyleSheet.create({
     button: {
         flexDirection: 'row',
-        width: '75%',
+        width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 10,

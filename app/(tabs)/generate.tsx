@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     flex: 2,
     alignItems: 'center',
-    width: '95%',
+    width: '75%',
     gap: 10,
   },
   title: {
