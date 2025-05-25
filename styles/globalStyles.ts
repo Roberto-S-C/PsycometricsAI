@@ -9,6 +9,7 @@ export const globalStyles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     width: '95%',
   },
