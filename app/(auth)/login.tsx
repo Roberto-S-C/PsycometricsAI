@@ -1,27 +1,53 @@
 import loginRequest from '@/authentication/loginRequest'
 import SocialButton from '@/components/Buttons/SocialButton'
 import Colors from '@/constants/Colors'
+import { useAuth } from '@/contexts/AuthContext'
 import { Ionicons } from '@expo/vector-icons'
+import { yupResolver } from '@hookform/resolvers/yup'
 import { Link } from 'expo-router'
 import React from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import * as yup from 'yup'
+
+const loginSchema = yup.object({
+  email: yup
+    .string()
+    .email('Please enter a valid email')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .required('Password is required'),
+});
+
+type LoginFormData = yup.InferType<typeof loginSchema>;
 
 const Login = () => {
-  const [email, setEmail] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [showPassword, setShowPassword] = React.useState(false)
-
-  const handleLogin = async () => {
-    try {
-      const response = await loginRequest({ email, password })
-      console.log('Login successful:', response)
-      // TODO: Store tokens and redirect
-    } catch (error) {
-      console.error('Login failed:', error)
-      // TODO: Show error message to user
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [loginError, setLoginError] = React.useState('');
+  const { login } = useAuth();
+  
+  const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+    resolver: yupResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: ''
     }
-  }
+  });
+
+  const handleLogin = async (data: LoginFormData) => {
+    try {
+      setLoginError(''); // Clear any previous errors
+      const response = await loginRequest(data);
+      await login(response);
+      // No need to redirect - context handles it
+    } catch (error) {
+      console.error('Login failed:', error);
+      setLoginError('Invalid credentials');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -52,40 +78,72 @@ const Login = () => {
       </View>
 
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor={Colors.darkGrey}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, value } }) => (
+            <View>
+              <TextInput
+                style={[styles.input, (errors.email || loginError) && styles.inputError]}
+                placeholder="Email"
+                placeholderTextColor={Colors.darkGrey}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={value}
+                onChangeText={(text) => {
+                  setLoginError('');
+                  onChange(text);
+                }}
+              />
+              {errors.email && (
+                <Text style={styles.errorText}>{errors.email.message}</Text>
+              )}
+            </View>
+          )}
         />
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={[styles.input, { flex: 1 }]}
-            placeholder="Password"
-            placeholderTextColor={Colors.darkGrey}
-            secureTextEntry={!showPassword}
-            value={password}
-            onChangeText={setPassword}
-          />
-          <TouchableOpacity 
-            style={styles.eyeButton}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <Ionicons
-              name={showPassword ? "eye-outline" : "eye-off-outline"}
-              size={24}
-              color={Colors.darkGrey}
-            />
-          </TouchableOpacity>
-        </View>
+
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, value } }) => (
+            <View>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[styles.input, { flex: 1 }, (errors.password || loginError) && styles.inputError]}
+                  placeholder="Password"
+                  placeholderTextColor={Colors.darkGrey}
+                  secureTextEntry={!showPassword}
+                  value={value}
+                  onChangeText={(text) => {
+                    setLoginError('');
+                    onChange(text);
+                  }}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-outline" : "eye-off-outline"}
+                    size={24}
+                    color={Colors.darkGrey}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.password && (
+                <Text style={styles.errorText}>{errors.password.message}</Text>
+              )}
+              {loginError && !errors.password && (
+                <Text style={styles.errorText}>{loginError}</Text>
+              )}
+            </View>
+          )}
+        />
       </View>
 
       <TouchableOpacity 
         style={styles.continueButton}
-        onPress={handleLogin}
+        onPress={handleSubmit(handleLogin)}
       >
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
@@ -186,5 +244,14 @@ const styles = StyleSheet.create({
   signUpText: {
     color: Colors.lightBlue,
     fontSize: 16,
+  },
+  inputError: {
+    borderColor: Colors.red,
+  },
+  errorText: {
+    color: Colors.red,
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
 })

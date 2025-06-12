@@ -1,6 +1,5 @@
+import axiosInstance from '@/utils/axios';
 import axios from 'axios';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 type LoginCredentials = {
   email: string;
@@ -14,14 +13,9 @@ type LoginResponse = {
 
 const loginRequest = async (credentials: LoginCredentials): Promise<LoginResponse> => {
   try {
-    const response = await axios.post<LoginResponse>(
-      `${API_URL}/login/`, 
-      credentials,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    const response = await axiosInstance.post<LoginResponse>(
+      '/login/',
+      credentials
     );
     
     return response.data;

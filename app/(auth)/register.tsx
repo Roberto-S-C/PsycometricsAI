@@ -1,14 +1,65 @@
+import registerRequest from '@/authentication/registerRequest'
 import SocialButton from '@/components/Buttons/SocialButton'
 import Colors from '@/constants/Colors'
+import { useAuth } from '@/contexts/AuthContext'
 import { Ionicons } from '@expo/vector-icons'
+import { yupResolver } from '@hookform/resolvers/yup'
 import { Link } from 'expo-router'
 import React from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import * as yup from 'yup'
+
+const registerSchema = yup.object({
+  email: yup
+    .string()
+    .email('Please enter a valid email')
+    .required('Email is required'),
+  password: yup
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .required('Password is required'),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref('password')], 'Passwords must match')
+    .required('Please confirm your password'),
+});
+
+type RegisterFormData = yup.InferType<typeof registerSchema>;
 
 const Register = () => {
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [registerError, setRegisterError] = React.useState('');
+  const [emailError, setEmailError] = React.useState('');
+  const { register } = useAuth();
+
+  const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
+    resolver: yupResolver(registerSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: ''
+    }
+  });
+
+  const handleRegister = async (data: RegisterFormData) => {
+    try {
+      setRegisterError('');
+      setEmailError('');
+      const response = await registerRequest(data);
+      await register(response);
+      // No need to redirect - context handles it
+    } catch (error) {
+      console.error('Registration failed:', error);
+      if (error instanceof Error && error.message === 'Email already registered') {
+        setEmailError(error.message);
+      } else {
+        setRegisterError('Registration failed. Please try again.');
+      }
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,60 +90,112 @@ const Register = () => {
       </View>
 
       <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Full Name"
-          placeholderTextColor={Colors.darkGrey}
-          autoCapitalize="words"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor={Colors.darkGrey}
-          keyboardType="email-address"
-          autoCapitalize="none"
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, value } }) => (
+            <View>
+              <TextInput
+                style={[styles.input, (errors.email || emailError) && styles.inputError]}
+                placeholder="Email"
+                placeholderTextColor={Colors.darkGrey}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={value}
+                onChangeText={(text) => {
+                  setEmailError('');
+                  onChange(text);
+                }}
+              />
+              {errors.email && (
+                <Text style={styles.errorText}>{errors.email.message}</Text>
+              )}
+              {emailError && !errors.email && (
+                <Text style={styles.errorText}>{emailError}</Text>
+              )}
+            </View>
+          )}
         />
         
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={[styles.input, { flex: 1 }]}
-            placeholder="Password"
-            placeholderTextColor={Colors.darkGrey}
-            secureTextEntry={!showPassword}
-          />
-          <TouchableOpacity 
-            style={styles.eyeButton}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <Ionicons
-              name={showPassword ? "eye-outline" : "eye-off-outline"}
-              size={24}
-              color={Colors.darkGrey}
-            />
-          </TouchableOpacity>
-        </View>
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, value } }) => (
+            <View>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[styles.input, { flex: 1 }, errors.password && styles.inputError]}
+                  placeholder="Password"
+                  placeholderTextColor={Colors.darkGrey}
+                  secureTextEntry={!showPassword}
+                  value={value}
+                  onChangeText={onChange}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeButton}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-outline" : "eye-off-outline"}
+                    size={24}
+                    color={Colors.darkGrey}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.password && (
+                <Text style={styles.errorText}>{errors.password.message}</Text>
+              )}
+            </View>
+          )}
+        />
 
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={[styles.input, { flex: 1 }]}
-            placeholder="Confirm Password"
-            placeholderTextColor={Colors.darkGrey}
-            secureTextEntry={!showConfirmPassword}
-          />
-          <TouchableOpacity 
-            style={styles.eyeButton}
-            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-          >
-            <Ionicons
-              name={showConfirmPassword ? "eye-outline" : "eye-off-outline"}
-              size={24}
-              color={Colors.darkGrey}
-            />
-          </TouchableOpacity>
-        </View>
+        <Controller
+          control={control}
+          name="confirmPassword"
+          render={({ field: { onChange, value } }) => (
+            <View>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={[
+                    styles.input, 
+                    { flex: 1 }, 
+                    (errors.confirmPassword || registerError) && styles.inputError
+                  ]}
+                  placeholder="Confirm Password"
+                  placeholderTextColor={Colors.darkGrey}
+                  secureTextEntry={!showConfirmPassword}
+                  value={value}
+                  onChangeText={(text) => {
+                    setRegisterError('');
+                    onChange(text);
+                  }}
+                />
+                <TouchableOpacity 
+                  style={styles.eyeButton}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? "eye-outline" : "eye-off-outline"}
+                    size={24}
+                    color={Colors.darkGrey}
+                  />
+                </TouchableOpacity>
+              </View>
+              {errors.confirmPassword && (
+                <Text style={styles.errorText}>{errors.confirmPassword.message}</Text>
+              )}
+              {registerError && !errors.confirmPassword && (
+                <Text style={styles.errorText}>{registerError}</Text>
+              )}
+            </View>
+          )}
+        />
       </View>
 
-      <TouchableOpacity style={styles.continueButton}>
+      <TouchableOpacity 
+        style={styles.continueButton}
+        onPress={handleSubmit(handleRegister)}
+      >
         <Text style={styles.continueButtonText}>Create Account</Text>
       </TouchableOpacity>
 
@@ -192,5 +295,14 @@ const styles = StyleSheet.create({
   signInText: {
     color: Colors.lightBlue,
     fontSize: 16,
+  },
+  inputError: {
+    borderColor: Colors.red,
+  },
+  errorText: {
+    color: Colors.red,
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
 })
