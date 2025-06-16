@@ -39,16 +39,7 @@
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser",
-      [
-        "expo-crypto",
-        {
-          "webcrypto": {
-            "packageImportName": "@peculiar/webcrypto",
-            "packageName": "@peculiar/webcrypto"
-          }
-        }
-      ]
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
