@@ -1,5 +1,7 @@
+import { loginWithGoogle } from '@/authentication/googleAuth';
+import { loginWithMicrosoft as microsoftAuth } from '@/authentication/microsoftAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios'; // Import axios
+import axios from 'axios';
 import { router } from 'expo-router';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
@@ -11,6 +13,8 @@ type AuthContextType = {
   login: (tokens: Tokens) => Promise<void>;
   logout: () => Promise<void>;
   register: (tokens: Tokens) => Promise<void>;
+  loginWithMicrosoft: () => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
 };
 
 type Tokens = {
@@ -101,8 +105,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginWithMicrosoft = async () => {
+    try {
+      const response = await microsoftAuth();
+      await login(response);
+    } catch (error) {
+      console.error('Microsoft login failed:', error);
+      throw error;
+    }
+  };
+
+  const loginWithGoogleHandler = async () => {
+    try {
+      const response = await loginWithGoogle();
+      await login(response);
+    } catch (error) {
+      console.error('Google login failed:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, tokens, login, logout, register }}>
+    <AuthContext.Provider 
+      value={{ 
+        isAuthenticated, 
+        tokens, 
+        login, 
+        logout, 
+        register,
+        loginWithMicrosoft,
+        loginWithGoogle: loginWithGoogleHandler 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

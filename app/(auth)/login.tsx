@@ -27,7 +27,7 @@ type LoginFormData = yup.InferType<typeof loginSchema>;
 const Login = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [loginError, setLoginError] = React.useState('');
-  const { login } = useAuth();
+  const { login, loginWithMicrosoft, loginWithGoogle } = useAuth();
   
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
@@ -55,12 +55,26 @@ const Login = () => {
       
       <View style={styles.socialButtons}>
         <SocialButton
-          onPress={() => console.log('Google login')}
+          onPress={async () => {
+            try {
+              await loginWithGoogle();
+            } catch (error) {
+              console.error('Google login failed:', error);
+              setLoginError('Google login failed');
+            }
+          }}
           imagePath={require('@/assets/images/icons/google_logo.png')}
           provider="Google"
         />
         <SocialButton
-          onPress={() => console.log('Microsoft login')}
+          onPress={async () => {
+            try {
+              await loginWithMicrosoft();
+            } catch (error) {
+              console.error('Microsoft login failed:', error);
+              setLoginError('Microsoft login failed');
+            }
+          }}
           imagePath={require('@/assets/images/icons/microsoft_logo.png')}
           provider="Microsoft"
         />

@@ -2,10 +2,11 @@
   "expo": {
     "name": "psycometrics-ai",
     "slug": "psycometrics-ai",
+    "owner": "psycometricsai",
+    "scheme": "psycometricsai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "psycometricsai",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -16,29 +17,47 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.psycometricsai.psycometricsai",
+      "permissions": [],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "psycometricsai",
+              "host": "oauth2redirect",
+              "pathPrefix": "/google"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
       "expo-web-browser",
-      "expo-secure-store"
+      [
+        "expo-crypto",
+        {
+          "webcrypto": {
+            "packageImportName": "@peculiar/webcrypto",
+            "packageName": "@peculiar/webcrypto"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3c61db67-1f25-411d-ae52-5afa66e6ebfa"
+      }
     }
   }
 }
