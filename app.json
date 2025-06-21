@@ -10,7 +10,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.psycometricsai.psycometricsai"
     },
     "android": {
       "adaptiveIcon": {
@@ -28,6 +29,16 @@
               "scheme": "psycometricsai",
               "host": "oauth2redirect",
               "pathPrefix": "/google"
+            },
+            {
+              "scheme": "psycometricsai",
+              "host": "oauth2redirect",
+              "pathPrefix": "/microsoft"
+            },
+            {
+              "scheme": "psycometricsai",
+              "host": "oauth2redirect",
+              "pathPrefix": "/linkedin"
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
@@ -39,7 +50,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.578024751158-gllgl91d33k9jnn7fkus9f2vscp73j41"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

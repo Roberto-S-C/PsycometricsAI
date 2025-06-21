@@ -27,7 +27,7 @@ type LoginFormData = yup.InferType<typeof loginSchema>;
 const Login = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [loginError, setLoginError] = React.useState('');
-  const { login, loginWithMicrosoft, loginWithGoogle } = useAuth();
+  const { login, loginWithMicrosoft, loginWithGoogle, loginWithLinkedIn } = useAuth();
   
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
@@ -57,7 +57,10 @@ const Login = () => {
         <SocialButton
           onPress={async () => {
             try {
-              await loginWithGoogle();
+              const userInfo = await loginWithGoogle();
+              // Example: send userInfo.idToken to your backend
+              // const response = await axiosInstance.post('/google/auth/', { idToken: userInfo.idToken });
+              // await login(response.data);
             } catch (error) {
               console.error('Google login failed:', error);
               setLoginError('Google login failed');
@@ -79,7 +82,14 @@ const Login = () => {
           provider="Microsoft"
         />
         <SocialButton
-          onPress={() => console.log('LinkedIn login')}
+          onPress={async () => {
+            try {
+              await loginWithLinkedIn();
+            } catch (error) {
+              console.error('LinkedIn login failed:', error);
+              setLoginError('LinkedIn login failed');
+            }
+          }}
           imagePath={require('@/assets/images/icons/linkedin_logo.png')}
           provider="LinkedIn"
         />

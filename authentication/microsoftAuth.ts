@@ -1,5 +1,4 @@
 import axiosInstance from '@/utils/axios';
-import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 
 // Make sure to complete auth session
@@ -8,10 +7,7 @@ WebBrowser.maybeCompleteAuthSession();
 const config = {
   clientId: process.env.EXPO_PUBLIC_MICROSOFT_CLIENT_ID!,
   scopes: ['openid', 'profile', 'email', 'offline_access', 'User.Read'],
-  redirectUri: makeRedirectUri({
-    scheme: 'psycometricsai',
-    useProxy: true
-  })
+  redirectUri: 'psycometricsai://oauth2redirect/microsoft'
 };
 
 export const loginWithMicrosoft = async () => {

@@ -1,4 +1,5 @@
 import { loginWithGoogle } from '@/authentication/googleAuth';
+import { loginWithLinkedIn } from '@/authentication/linkedInAuth';
 import { loginWithMicrosoft as microsoftAuth } from '@/authentication/microsoftAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -15,6 +16,7 @@ type AuthContextType = {
   register: (tokens: Tokens) => Promise<void>;
   loginWithMicrosoft: () => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  loginWithLinkedIn: () => Promise<void>;
 };
 
 type Tokens = {
@@ -47,6 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadTokens = async () => {
     try {
       const storedTokens = await AsyncStorage.getItem('tokens');
+      console.log('Loaded tokens from storage:', storedTokens);
       
       if (storedTokens) {
         const parsedTokens = JSON.parse(storedTokens);
@@ -117,10 +120,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogleHandler = async () => {
     try {
-      const response = await loginWithGoogle();
-      await login(response);
+      const idToken = await loginWithGoogle();
+      console.log('Google ID Token:', idToken); // Debug log
+      const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/google/auth/`, { id_token: idToken });
+      await login(response.data);
     } catch (error) {
       console.error('Google login failed:', error);
+      throw error;
+    }
+  };
+
+  const loginWithLinkedInHandler = async () => {
+    try {
+      const response = await loginWithLinkedIn();
+      await login(response);
+    } catch (error) {
+      console.error('LinkedIn login failed:', error);
       throw error;
     }
   };
@@ -134,7 +149,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout, 
         register,
         loginWithMicrosoft,
-        loginWithGoogle: loginWithGoogleHandler 
+        loginWithGoogle: loginWithGoogleHandler,
+        loginWithLinkedIn: loginWithLinkedInHandler 
       }}
     >
       {children}
