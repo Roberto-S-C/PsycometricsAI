@@ -4,6 +4,7 @@ export const loginWithGoogle = async () => {
   try {
     await GoogleSignin.hasPlayServices();
     const response = await GoogleSignin.signIn();
+    console.log('Google Sign-In Response:', response); // Debug log
 
     if (isSuccessResponse(response)) {
       return response.data.idToken;

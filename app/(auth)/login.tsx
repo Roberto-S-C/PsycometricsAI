@@ -57,10 +57,7 @@ const Login = () => {
         <SocialButton
           onPress={async () => {
             try {
-              const userInfo = await loginWithGoogle();
-              // Example: send userInfo.idToken to your backend
-              // const response = await axiosInstance.post('/google/auth/', { idToken: userInfo.idToken });
-              // await login(response.data);
+              await loginWithGoogle(); // This is the handler from AuthContext
             } catch (error) {
               console.error('Google login failed:', error);
               setLoginError('Google login failed');
