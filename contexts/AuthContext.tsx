@@ -1,5 +1,4 @@
 import { loginWithGoogle } from '@/authentication/googleAuth';
-import { loginWithLinkedIn } from '@/authentication/linkedInAuth';
 import { loginWithMicrosoft as microsoftAuth } from '@/authentication/microsoftAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -16,7 +15,6 @@ type AuthContextType = {
   register: (tokens: Tokens) => Promise<void>;
   loginWithMicrosoft: () => Promise<void>;
   loginWithGoogle: () => Promise<void>;
-  loginWithLinkedIn: () => Promise<void>;
 };
 
 type Tokens = {
@@ -35,11 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadTokens();
   }, []);
 
-  const storeTokens = async (newTokens: Tokens) => {
+  const storeTokens = async (newTokens: { data: Tokens }) => {
     try {
       console.log('Storing new tokens:', newTokens); // Debug log
       await AsyncStorage.setItem('tokens', JSON.stringify(newTokens));
-      setTokens(newTokens);
+      setTokens(newTokens.data); // Extract and set the tokens
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Error storing tokens:', error);
@@ -50,34 +48,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const storedTokens = await AsyncStorage.getItem('tokens');
       console.log('Loaded tokens from storage:', storedTokens);
-      
+
       if (storedTokens) {
         const parsedTokens = JSON.parse(storedTokens);
-        
+
+        // Extract tokens from the "data" key
+        const { access, refresh } = parsedTokens.data || {};
+
         // Check token structure
-        if (!parsedTokens.access || !parsedTokens.refresh) {
+        if (!access || !refresh) {
           console.error('Invalid token structure');
           await logout();
           return;
         }
 
         // Check if access token is expired
-        const payload = JSON.parse(atob(parsedTokens.access.split('.')[1]));
+        const payload = JSON.parse(atob(access.split('.')[1]));
         if (payload.exp * 1000 < Date.now()) {
           // Token is expired, try to refresh
           try {
             const response = await axios.post(`${API_URL}/token/refresh/`, {
-              refresh: parsedTokens.refresh
+              refresh,
             });
             const { access: newAccess } = response.data;
-            await storeTokens({ ...parsedTokens, access: newAccess });
+            await storeTokens({ data: { access: newAccess, refresh } });
           } catch (error) {
             // If refresh fails, logout
             await logout();
             return;
           }
         } else {
-          setTokens(parsedTokens);
+          setTokens(parsedTokens.data); // Set tokens from the "data" key
           setIsAuthenticated(true);
         }
       }
@@ -87,12 +88,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (newTokens: Tokens) => {
+  const login = async (newTokens: { data: Tokens }) => {
     await storeTokens(newTokens);
     router.replace('(tabs)' as any);
   };
 
-  const register = async (newTokens: Tokens) => {
+  const register = async (newTokens: { data: Tokens }) => {
     await storeTokens(newTokens);
     router.replace('(tabs)' as any);
   };
@@ -120,22 +121,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogleHandler = async () => {
     try {
-      const idToken = await loginWithGoogle();
-      console.log('Google ID Token:', idToken); // Debug log
-      const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/google/auth/`, { id_token: idToken });
+      const { idToken, email } = await loginWithGoogle();
+      const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/google/auth/`, { id_token: idToken, email });
       await login(response.data);
     } catch (error) {
       console.error('Google login failed:', error);
-      throw error;
-    }
-  };
-
-  const loginWithLinkedInHandler = async () => {
-    try {
-      const response = await loginWithLinkedIn();
-      await login(response);
-    } catch (error) {
-      console.error('LinkedIn login failed:', error);
       throw error;
     }
   };
@@ -150,7 +140,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         loginWithMicrosoft,
         loginWithGoogle: loginWithGoogleHandler,
-        loginWithLinkedIn: loginWithLinkedInHandler 
       }}
     >
       {children}

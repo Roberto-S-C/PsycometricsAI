@@ -7,18 +7,14 @@ type RegisterCredentials = {
   confirmPassword: string;
 };
 
-type RegisterResponse = {
+type Tokens = {
   access: string;
   refresh: string;
 };
 
-const registerRequest = async (credentials: RegisterCredentials): Promise<RegisterResponse> => {
+const registerRequest = async (credentials: RegisterCredentials): Promise<{ data: Tokens }> => {
   try {
-    const response = await axiosInstance.post<RegisterResponse>(
-      '/signup/',
-      credentials
-    );
-    
+    const response = await axiosInstance.post<{ data: Tokens }>('/signup/', credentials);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

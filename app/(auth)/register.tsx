@@ -33,7 +33,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [registerError, setRegisterError] = React.useState('');
   const [emailError, setEmailError] = React.useState('');
-  const { register } = useAuth();
+  const { register, loginWithGoogle, loginWithMicrosoft } = useAuth();
 
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
     resolver: yupResolver(registerSchema),
@@ -48,9 +48,8 @@ const Register = () => {
     try {
       setRegisterError('');
       setEmailError('');
-      const response = await registerRequest(data);
-      await register(response);
-      // No need to redirect - context handles it
+      const tokens = await registerRequest(data);
+      await register(tokens);
     } catch (error) {
       console.error('Registration failed:', error);
       if (error instanceof Error && error.message === 'Email already registered') {
@@ -67,19 +66,32 @@ const Register = () => {
       
       <View style={styles.socialButtons}>
         <SocialButton
-          onPress={() => console.log('Google signup')}
+          onPress={async () => {
+            try {
+              const { idToken, email } = await loginWithGoogle();
+              console.log('Google Sign-Up:', { idToken, email });
+              // Handle Google sign-up logic here
+            } catch (error) {
+              console.error('Google sign-up failed:', error);
+              setRegisterError('Google sign-up failed');
+            }
+          }}
           imagePath={require('@/assets/images/icons/google_logo.png')}
           provider="Google"
         />
         <SocialButton
-          onPress={() => console.log('Microsoft signup')}
+          onPress={async () => {
+            try {
+              await loginWithMicrosoft();
+              console.log('Microsoft Sign-Up Successful');
+              // Handle Microsoft sign-up logic here
+            } catch (error) {
+              console.error('Microsoft sign-up failed:', error);
+              setRegisterError('Microsoft sign-up failed');
+            }
+          }}
           imagePath={require('@/assets/images/icons/microsoft_logo.png')}
           provider="Microsoft"
-        />
-        <SocialButton
-          onPress={() => console.log('LinkedIn signup')}
-          imagePath={require('@/assets/images/icons/linkedin_logo.png')}
-          provider="LinkedIn"
         />
       </View>
 
@@ -208,8 +220,8 @@ const Register = () => {
         </Link>
       </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
 export default Register
 

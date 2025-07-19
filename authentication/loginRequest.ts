@@ -6,18 +6,14 @@ type LoginCredentials = {
   password: string;
 };
 
-type LoginResponse = {
+type Tokens = {
   access: string;
   refresh: string;
 };
 
-const loginRequest = async (credentials: LoginCredentials): Promise<LoginResponse> => {
+const loginRequest = async (credentials: LoginCredentials): Promise<{ data: Tokens }> => {
   try {
-    const response = await axiosInstance.post<LoginResponse>(
-      '/login/',
-      credentials
-    );
-    
+    const response = await axiosInstance.post<{ data: Tokens }>('/login/', credentials);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

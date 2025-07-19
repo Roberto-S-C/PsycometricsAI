@@ -27,7 +27,7 @@ type LoginFormData = yup.InferType<typeof loginSchema>;
 const Login = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [loginError, setLoginError] = React.useState('');
-  const { login, loginWithMicrosoft, loginWithGoogle, loginWithLinkedIn } = useAuth();
+  const { login, loginWithMicrosoft, loginWithGoogle } = useAuth();
   
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
@@ -40,9 +40,8 @@ const Login = () => {
   const handleLogin = async (data: LoginFormData) => {
     try {
       setLoginError(''); // Clear any previous errors
-      const response = await loginRequest(data);
-      await login(response);
-      // No need to redirect - context handles it
+      const tokens = await loginRequest(data);
+      await login(tokens);
     } catch (error) {
       console.error('Login failed:', error);
       setLoginError('Invalid credentials');
@@ -77,18 +76,6 @@ const Login = () => {
           }}
           imagePath={require('@/assets/images/icons/microsoft_logo.png')}
           provider="Microsoft"
-        />
-        <SocialButton
-          onPress={async () => {
-            try {
-              await loginWithLinkedIn();
-            } catch (error) {
-              console.error('LinkedIn login failed:', error);
-              setLoginError('LinkedIn login failed');
-            }
-          }}
-          imagePath={require('@/assets/images/icons/linkedin_logo.png')}
-          provider="LinkedIn"
         />
       </View>
 
