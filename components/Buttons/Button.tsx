@@ -1,22 +1,33 @@
-import Colors from '@/constants/Colors'
-import React from 'react'
-import { StyleSheet, Text, TouchableOpacity } from 'react-native'
+import Colors from '@/constants/Colors';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 type Props = {
-    buttonColor: string,
-    textColor: string,
-    content: string
-}
+    buttonColor: string;
+    textColor: string;
+    content: string;
+    onPress?: () => void;
+    disabled?: boolean;
+};
 
-const Button = ({ buttonColor, textColor, content }: Props) => {
+const Button = ({ buttonColor, textColor, content, onPress, disabled }: Props) => {
     return (
-        <TouchableOpacity style={[styles.button, { backgroundColor: buttonColor }]}>
-            <Text style={[styles.text, { color: textColor }]}>{content}</Text>
+        <TouchableOpacity
+            style={[
+                styles.button,
+                { backgroundColor: disabled ? Colors.lightGrey : buttonColor },
+            ]}
+            onPress={onPress}
+            disabled={disabled}
+        >
+            <Text style={[styles.text, { color: disabled ? Colors.darkGrey : textColor }]}>
+                {content}
+            </Text>
         </TouchableOpacity>
-    )
-}
+    );
+};
 
-export default Button
+export default Button;
 
 const styles = StyleSheet.create({
     button: {
@@ -32,4 +43,4 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 24,
     },
-})
+});

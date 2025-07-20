@@ -5,6 +5,7 @@ export default function ProtectedLayout() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="candidates" options={{ headerShown: false }} />
+      <Stack.Screen name="generate" options={{ headerShown: false }} />
     </Stack>
   );
 }

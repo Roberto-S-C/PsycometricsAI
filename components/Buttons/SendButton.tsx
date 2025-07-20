@@ -6,14 +6,25 @@ type Props = {
     Icon: React.ComponentType<{ size?: number; color?: string }>;
     content: string;
     buttonColor: string;
+    disabled?: boolean;
+    onPress?: () => void; // Add onPress prop
 };
 
-const SendButton = ({ Icon, content, buttonColor }: Props) => (
-    <TouchableOpacity style={[styles.button, { backgroundColor: buttonColor }]}>
+const SendButton = ({ Icon, content, buttonColor, disabled, onPress }: Props) => (
+    <TouchableOpacity
+        style={[
+            styles.button,
+            { backgroundColor: disabled ? Colors.lightGrey : buttonColor },
+        ]}
+        disabled={disabled}
+        onPress={onPress} // Handle button press
+    >
         <View style={styles.iconWrapper}>
-            <Icon size={24} color={Colors.creamWhite} />
+            <Icon size={24} color={disabled ? Colors.darkGrey : Colors.creamWhite} />
         </View>
-        <Text style={styles.content}>{content}</Text>
+        <Text style={[styles.content, { color: disabled ? Colors.darkGrey : Colors.creamWhite }]}>
+            {content}
+        </Text>
     </TouchableOpacity>
 );
 
@@ -29,13 +40,7 @@ const styles = StyleSheet.create({
         padding: 8,
         position: 'relative',
     },
-    iconWrapper: {
-        position: 'absolute',
-        left: 6,
-        justifyContent: 'center',
-    },
     content: {
         fontSize: 24,
-        color: Colors.creamWhite,
-    }
+    },
 });
