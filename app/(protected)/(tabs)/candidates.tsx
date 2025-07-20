@@ -1,16 +1,66 @@
-import FilterButton from '@/components/Buttons/FilterButton'
-import SortButton from '@/components/Buttons/SortButton'
-import CandidatePreview from '@/components/Candidates/CandidatePreview'
-import SearchBar from '@/components/SearchBar'
-import { globalStyles } from '@/styles/globalStyles'
-import React from 'react'
-import { FlatList, StyleSheet, View } from 'react-native'
+import FilterButton from '@/components/Buttons/FilterButton';
+import SortButton from '@/components/Buttons/SortButton';
+import CandidatePreview from '@/components/Candidates/CandidatePreview';
+import SearchBar from '@/components/SearchBar';
+import { globalStyles } from '@/styles/globalStyles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 
-const candidates = () => {
+const CandidatesScreen = () => {
+  const [candidates, setCandidates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        // Retrieve the stored token
+        const tokenString = await AsyncStorage.getItem('tokens');
+        if (!tokenString) throw new Error('No token found');
+
+        const { data } = JSON.parse(tokenString); // Parse the token
+        const accessToken = data.access; // Extract the access token
+
+        // Make the API request
+        const response = await axios.get(`${process.env.EXPO_PUBLIC_API_URL}/hrs/candidates/`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Pass the access token in the Authorization header
+          },
+        });
+
+        setCandidates(response.data); // Update the candidates state with the fetched data
+      } catch (err) {
+        console.error('Error fetching candidates:', err);
+        setError('Failed to load candidates. Please try again.');
+      } finally {
+        setLoading(false); // Stop the loading spinner
+      }
+    };
+
+    fetchCandidates();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={[globalStyles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[globalStyles.screen, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: 'red', fontSize: 16 }}>{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={globalStyles.screen}>
       <View style={globalStyles.container}>
-
         <View style={{ alignItems: 'center', marginTop: 8 }}>
           <SearchBar />
         </View>
@@ -21,19 +71,17 @@ const candidates = () => {
         </View>
 
         <FlatList
-          data={Candidates}
-          renderItem={({ item }) => <CandidatePreview key={item.id} candidate={item} />}
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />} // 12px vertical space
-          contentContainerStyle={{ alignItems: 'center' }}
+          data={candidates}
+          renderItem={({ item }) => <CandidatePreview key={item._id} candidate={item} />}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          contentContainerStyle={{ paddingBottom: 20 }} // Add padding at the bottom for spacing
         />
       </View>
-
     </View>
+  );
+};
 
-  )
-}
-
-export default candidates
+export default CandidatesScreen;
 
 const styles = StyleSheet.create({
   buttonsContainer: {
@@ -42,85 +90,6 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 8,
     marginBottom: 8,
-    gap: 5
+    gap: 5,
   },
-})
-
-let Candidates = [
-  {
-    id: 1,
-    name: 'John Doe',
-    score: 90.92,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 3,
-    name: 'Jane Smith',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 4,
-    name: 'Jane Smith',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 5,
-    name: 'Jane Smith',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 6,
-    name: 'Jane Smith',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 7,
-    name: 'Jane Smith',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 8,
-    name: 'Jane Smith',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 9,
-    name: 'Jane Smith',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 10,
-    name: 'Jane Smith',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-  {
-    id: 11,
-    name: 'Roberto Sánchez',
-    age: 28,
-    score: 30.8,
-    testDate: '05/23/2025'
-  },
-]
+});
