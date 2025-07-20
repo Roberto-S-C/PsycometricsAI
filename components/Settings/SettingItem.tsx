@@ -7,18 +7,19 @@ type Props = {
     title: string;
     iconSize?: number;
     iconColor?: string;
-}
+    onPress?: () => void; // Add onPress as an optional prop
+};
 
-const SettingItem = ({ Icon, title, iconSize = 30, iconColor = Colors.darkGrey }: Props) => {
+const SettingItem = ({ Icon, title, iconSize = 30, iconColor = Colors.darkGrey, onPress }: Props) => {
     return (
-        <TouchableOpacity style={styles.container}>
+        <TouchableOpacity style={styles.container} onPress={onPress}>
             <Icon size={iconSize} color={iconColor} />
             <Text style={styles.title}>{title}</Text>
         </TouchableOpacity>
-    )
-}
+    );
+};
 
-export default SettingItem
+export default SettingItem;
 
 const styles = StyleSheet.create({
     container: {
@@ -32,4 +33,4 @@ const styles = StyleSheet.create({
         fontSize: 20,
         color: Colors.darkGrey,
     },
-})
+});

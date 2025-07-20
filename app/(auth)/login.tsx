@@ -1,15 +1,15 @@
-import loginRequest from '@/authentication/loginRequest'
-import SocialButton from '@/components/Buttons/SocialButton'
-import Colors from '@/constants/Colors'
-import { useAuth } from '@/contexts/AuthContext'
-import { Ionicons } from '@expo/vector-icons'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { Link } from 'expo-router'
-import React from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import * as yup from 'yup'
+import loginRequest from '@/authentication/loginRequest';
+import SocialButton from '@/components/Buttons/SocialButton';
+import Colors from '@/constants/Colors';
+import { useAuth } from '@/contexts/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Link, useRouter } from 'expo-router'; // Add this import
+import React, { useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as yup from 'yup';
 
 const loginSchema = yup.object({
   email: yup
@@ -28,7 +28,16 @@ const Login = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [loginError, setLoginError] = React.useState('');
   const { login, loginWithMicrosoft, loginWithGoogle } = useAuth();
-  
+  const { isAuthenticated, tokens } = useAuth(); // Access tokens for additional validation
+  const router = useRouter();
+
+  // Redirect to home if authenticated and tokens exist
+  useEffect(() => {
+    if (isAuthenticated && tokens) {
+      router.replace('(tabs)');
+    }
+  }, [isAuthenticated, tokens, router]);
+
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: yupResolver(loginSchema),
     defaultValues: {
@@ -165,10 +174,10 @@ const Login = () => {
         </Link>
       </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
 
 const styles = StyleSheet.create({
   container: {
@@ -262,4 +271,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 4,
   },
-})
+});

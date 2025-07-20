@@ -5,7 +5,7 @@ import axios from 'axios';
 import { router } from 'expo-router';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -29,15 +29,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [tokens, setTokens] = useState<Tokens | null>(null);
 
   useEffect(() => {
-    // Check for existing tokens when app loads
     loadTokens();
   }, []);
 
   const storeTokens = async (newTokens: { data: Tokens }) => {
     try {
-      console.log('Storing new tokens:', newTokens); // Debug log
       await AsyncStorage.setItem('tokens', JSON.stringify(newTokens));
-      setTokens(newTokens.data); // Extract and set the tokens
+      setTokens(newTokens.data);
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Error storing tokens:', error);
@@ -47,44 +45,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadTokens = async () => {
     try {
       const storedTokens = await AsyncStorage.getItem('tokens');
-      console.log('Loaded tokens from storage:', storedTokens);
-
       if (storedTokens) {
         const parsedTokens = JSON.parse(storedTokens);
-
-        // Extract tokens from the "data" key
         const { access, refresh } = parsedTokens.data || {};
-
-        // Check token structure
         if (!access || !refresh) {
-          console.error('Invalid token structure');
-          await logout();
+          setIsAuthenticated(false);
           return;
         }
-
-        // Check if access token is expired
         const payload = JSON.parse(atob(access.split('.')[1]));
         if (payload.exp * 1000 < Date.now()) {
-          // Token is expired, try to refresh
           try {
-            const response = await axios.post(`${API_URL}/token/refresh/`, {
-              refresh,
-            });
+            const response = await axios.post(`${API_URL}/token/refresh/`, { refresh });
             const { access: newAccess } = response.data;
             await storeTokens({ data: { access: newAccess, refresh } });
           } catch (error) {
-            // If refresh fails, logout
-            await logout();
+            setIsAuthenticated(false);
             return;
           }
         } else {
-          setTokens(parsedTokens.data); // Set tokens from the "data" key
+          setTokens(parsedTokens.data);
           setIsAuthenticated(true);
         }
+      } else {
+        setIsAuthenticated(false);
       }
     } catch (error) {
-      console.error('Error loading tokens:', error);
-      await logout();
+      setIsAuthenticated(false);
     }
   };
 
@@ -100,10 +86,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      console.log('Logging out...'); // Debug log
       await AsyncStorage.removeItem('tokens');
       setTokens(null);
       setIsAuthenticated(false);
-      router.replace('(auth)/login' as any); // TypeScript fix
+      router.replace('(auth)/login' as any);
     } catch (error) {
       console.error('Error during logout:', error);
     }
@@ -122,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogleHandler = async () => {
     try {
       const { idToken, email } = await loginWithGoogle();
-      const response = await axios.post(`${process.env.EXPO_PUBLIC_API_URL}/google/auth/`, { id_token: idToken, email });
+      const response = await axios.post(`${API_URL}/google/auth/`, { id_token: idToken, email });
       await login(response.data);
     } catch (error) {
       console.error('Google login failed:', error);
@@ -131,12 +118,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        isAuthenticated, 
-        tokens, 
-        login, 
-        logout, 
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        tokens,
+        login,
+        logout,
         register,
         loginWithMicrosoft,
         loginWithGoogle: loginWithGoogleHandler,
