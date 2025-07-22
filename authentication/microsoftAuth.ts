@@ -27,13 +27,13 @@ export const loginWithMicrosoft = async () => {
       config.redirectUri
     );
 
-    console.log('Auth result:', result); // Debug log to see the full result
+    console.log('Auth result:', result); // Log the result from WebBrowser
 
     if (result.type === 'success') {
       const url = new URL(result.url);
       const code = url.searchParams.get('code');
 
-      console.log('Authorization code found:', !!code); // Debug log
+      console.log('Authorization code:', code); // Log the authorization code
 
       if (!code) {
         throw new Error('No authorization code received');
@@ -47,7 +47,7 @@ export const loginWithMicrosoft = async () => {
         redirect_uri: config.redirectUri // Backend might need this for token exchange
       });
 
-      console.log('Backend response:', backendResponse.data);
+      console.log('Backend response:', backendResponse.data); // Log the backend response
       return backendResponse.data;
     }
 

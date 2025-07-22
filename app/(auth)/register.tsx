@@ -1,15 +1,16 @@
-import registerRequest from '@/authentication/registerRequest'
-import SocialButton from '@/components/Buttons/SocialButton'
-import Colors from '@/constants/Colors'
-import { useAuth } from '@/contexts/AuthContext'
-import { Ionicons } from '@expo/vector-icons'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { Link } from 'expo-router'
-import React from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import * as yup from 'yup'
+import registerRequest from '@/authentication/registerRequest';
+import SocialButton from '@/components/Buttons/SocialButton';
+import Loading from '@/components/Loading'; // Import the Loading component
+import Colors from '@/constants/Colors';
+import { useAuth } from '@/contexts/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Link, useRouter } from 'expo-router';
+import React, { useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as yup from 'yup';
 
 const registerSchema = yup.object({
   email: yup
@@ -33,7 +34,15 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [registerError, setRegisterError] = React.useState('');
   const [emailError, setEmailError] = React.useState('');
-  const { register, loginWithGoogle, loginWithMicrosoft } = useAuth();
+  const { register, loginWithGoogle, loginWithMicrosoft, isAuthenticated, tokens, isLoading } = useAuth(); // Use isLoading from AuthContext
+  const router = useRouter();
+
+  // Redirect to home if authenticated and tokens exist
+  useEffect(() => {
+    if (isAuthenticated && tokens) {
+      router.replace('/(protected)/(tabs)/');
+    }
+  }, [isAuthenticated, tokens, router]);
 
   const { control, handleSubmit, formState: { errors } } = useForm<RegisterFormData>({
     resolver: yupResolver(registerSchema),
@@ -48,6 +57,7 @@ const Register = () => {
     try {
       setRegisterError('');
       setEmailError('');
+
       const tokens = await registerRequest(data);
       await register(tokens);
     } catch (error) {
@@ -60,36 +70,42 @@ const Register = () => {
     }
   };
 
+  const handleGoogleRegister = async () => {
+    try {
+      setRegisterError('');
+      await loginWithGoogle(); // Use loginWithGoogle from AuthContext
+    } catch (error) {
+      console.error('Google sign-up failed:', error);
+      setRegisterError('Google sign-up failed');
+    }
+  };
+
+  const handleMicrosoftRegister = async () => {
+    try {
+      setRegisterError('');
+      await loginWithMicrosoft(); // Use loginWithMicrosoft from AuthContext
+    } catch (error) {
+      console.error('Microsoft sign-up failed:', error);
+      setRegisterError('Microsoft sign-up failed');
+    }
+  };
+
+  if (isLoading) {
+    return <Loading />; // Show the Loading component while loading
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
       
       <View style={styles.socialButtons}>
         <SocialButton
-          onPress={async () => {
-            try {
-              const { idToken, email } = await loginWithGoogle();
-              console.log('Google Sign-Up:', { idToken, email });
-              // Handle Google sign-up logic here
-            } catch (error) {
-              console.error('Google sign-up failed:', error);
-              setRegisterError('Google sign-up failed');
-            }
-          }}
+          onPress={handleGoogleRegister} // Use the Google register handler
           imagePath={require('@/assets/images/icons/google_logo.png')}
           provider="Google"
         />
         <SocialButton
-          onPress={async () => {
-            try {
-              await loginWithMicrosoft();
-              console.log('Microsoft Sign-Up Successful');
-              // Handle Microsoft sign-up logic here
-            } catch (error) {
-              console.error('Microsoft sign-up failed:', error);
-              setRegisterError('Microsoft sign-up failed');
-            }
-          }}
+          onPress={handleMicrosoftRegister} // Use the Microsoft register handler
           imagePath={require('@/assets/images/icons/microsoft_logo.png')}
           provider="Microsoft"
         />

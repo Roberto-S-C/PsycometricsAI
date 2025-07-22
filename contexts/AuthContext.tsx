@@ -27,10 +27,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [tokens, setTokens] = useState<Tokens | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     loadTokens();
   }, []);
+
+  useEffect(() => {
+    console.log('isAuthenticated:', isAuthenticated);
+    console.log('tokens:', tokens);
+  }, [isAuthenticated, tokens]);
 
   const storeTokens = async (newTokens: { data: Tokens }) => {
     try {
@@ -75,13 +81,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (newTokens: { data: Tokens }) => {
-    await storeTokens(newTokens);
-    router.replace('(tabs)' as any);
+    setIsLoading(true); // Set loading state
+    try {
+      await storeTokens(newTokens);
+      router.replace('(tabs)' as any);
+    } finally {
+      setIsLoading(false); // Reset loading state
+    }
   };
 
   const register = async (newTokens: { data: Tokens }) => {
-    await storeTokens(newTokens);
-    router.replace('(tabs)' as any);
+    setIsLoading(true); // Set loading state
+    try {
+      await storeTokens(newTokens);
+      router.replace('(tabs)' as any);
+    } finally {
+      setIsLoading(false); // Reset loading state
+    }
   };
 
   const logout = async () => {
@@ -96,17 +112,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loginWithMicrosoft = async () => {
-    try {
-      const response = await microsoftAuth();
-      await login(response);
-    } catch (error) {
-      console.error('Microsoft login failed:', error);
-      throw error;
-    }
-  };
-
   const loginWithGoogleHandler = async () => {
+    setIsLoading(true); // Set loading state
     try {
       const { idToken, email } = await loginWithGoogle();
       const response = await axios.post(`${API_URL}/google/auth/`, { id_token: idToken, email });
@@ -114,6 +121,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Google login failed:', error);
       throw error;
+    } finally {
+      setIsLoading(false); // Reset loading state
+    }
+  };
+
+  const loginWithMicrosoft = async () => {
+    setIsLoading(true); // Set loading state
+    try {
+      const response = await microsoftAuth();
+      await login(response);
+    } catch (error) {
+      console.error('Microsoft login failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false); // Reset loading state
     }
   };
 
@@ -122,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         isAuthenticated,
         tokens,
+        isLoading, // Expose isLoading state
         login,
         logout,
         register,

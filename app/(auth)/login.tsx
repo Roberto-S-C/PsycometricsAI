@@ -1,10 +1,10 @@
-import loginRequest from '@/authentication/loginRequest';
 import SocialButton from '@/components/Buttons/SocialButton';
+import Loading from '@/components/Loading'; // Adjust the import based on your project structure
 import Colors from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Link, useRouter } from 'expo-router'; // Add this import
+import { Link, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -27,14 +27,13 @@ type LoginFormData = yup.InferType<typeof loginSchema>;
 const Login = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [loginError, setLoginError] = React.useState('');
-  const { login, loginWithMicrosoft, loginWithGoogle } = useAuth();
-  const { isAuthenticated, tokens } = useAuth(); // Access tokens for additional validation
+  const { login, loginWithMicrosoft, loginWithGoogle, isAuthenticated, tokens, isLoading } = useAuth();
   const router = useRouter();
 
   // Redirect to home if authenticated and tokens exist
   useEffect(() => {
     if (isAuthenticated && tokens) {
-      router.replace('(tabs)');
+      router.replace('/(protected)/(tabs)/');
     }
   }, [isAuthenticated, tokens, router]);
 
@@ -48,41 +47,50 @@ const Login = () => {
 
   const handleLogin = async (data: LoginFormData) => {
     try {
-      setLoginError(''); // Clear any previous errors
-      const tokens = await loginRequest(data);
-      await login(tokens);
+      setLoginError('');
+      await login({ data }); // Use login from AuthContext
     } catch (error) {
       console.error('Login failed:', error);
       setLoginError('Invalid credentials');
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      setLoginError('');
+      await loginWithGoogle(); // Use loginWithGoogle from AuthContext
+    } catch (error) {
+      console.error('Google login failed:', error);
+      setLoginError('Google login failed');
+    }
+  };
+
+  const handleMicrosoftLogin = async () => {
+    try {
+      setLoginError('');
+      await loginWithMicrosoft(); // Use loginWithMicrosoft from AuthContext
+    } catch (error) {
+      console.error('Microsoft login failed:', error);
+      setLoginError('Microsoft login failed');
+    }
+  };
+
+  if (isLoading) {
+    return <Loading />; // Show the Loading component while loading
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.title}>Sign In</Text>
-      
+
       <View style={styles.socialButtons}>
         <SocialButton
-          onPress={async () => {
-            try {
-              await loginWithGoogle(); // This is the handler from AuthContext
-            } catch (error) {
-              console.error('Google login failed:', error);
-              setLoginError('Google login failed');
-            }
-          }}
+          onPress={handleGoogleLogin} // Use the Google login handler
           imagePath={require('@/assets/images/icons/google_logo.png')}
           provider="Google"
         />
         <SocialButton
-          onPress={async () => {
-            try {
-              await loginWithMicrosoft();
-            } catch (error) {
-              console.error('Microsoft login failed:', error);
-              setLoginError('Microsoft login failed');
-            }
-          }}
+          onPress={handleMicrosoftLogin} // Use the Microsoft login handler
           imagePath={require('@/assets/images/icons/microsoft_logo.png')}
           provider="Microsoft"
         />
@@ -136,7 +144,7 @@ const Login = () => {
                     onChange(text);
                   }}
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.eyeButton}
                   onPress={() => setShowPassword(!showPassword)}
                 >
@@ -158,7 +166,7 @@ const Login = () => {
         />
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.continueButton}
         onPress={handleSubmit(handleLogin)}
       >
