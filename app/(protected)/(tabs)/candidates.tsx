@@ -74,7 +74,7 @@ const CandidatesScreen = () => {
           data={candidates}
           renderItem={({ item }) => <CandidatePreview key={item._id} candidate={item} />}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          contentContainerStyle={{ paddingBottom: 20 }} // Add padding at the bottom for spacing
+          contentContainerStyle={{ paddingBottom: 20 }}
         />
       </View>
     </View>
